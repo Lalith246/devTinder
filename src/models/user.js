@@ -27,7 +27,7 @@ const userSchema = mongoose.Schema(
       type: String,
       lowercase: true,
       required: true,
-      unique: true,
+      unique: true, // If unique: true is set, mongoose creates a unique index in the background
       trin: true,
       immutable: true,
       validate(value) {
@@ -43,7 +43,6 @@ const userSchema = mongoose.Schema(
       validate(value) {
         const diff = Date.now() - value
         const ageInYears = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25))
-        console.log(ageInYears)
         if (ageInYears < 18) throw new Error('User is below the legal age!')
       },
     },

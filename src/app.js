@@ -9,6 +9,7 @@ const { userModel } = require('./models/user')
 const { authRouter } = require('./routes/auth')
 const { profileRouter } = require('./routes/profile')
 const { requestRouter } = require('./routes/request')
+const { userRouter } = require('./routes/user')
 
 const app = express()
 // This is needed to convert the incoming JSON request body into a JavaScript object
@@ -34,6 +35,7 @@ connectDB()
 app.use('/', authRouter)
 app.use('/', profileRouter)
 app.use('/', requestRouter)
+app.use('/', userRouter)
 
 // Make a connection request
 app.post('/sendConnection', userAuth, async (req, res) => {

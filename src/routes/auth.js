@@ -3,6 +3,7 @@ const validator = require('validator')
 const { userModel } = require('../models/user')
 const { userAuth } = require('./../middlewares/auth')
 const { validateSignupData } = require('../utils/validation')
+const bcrypt = require('bcrypt')
 
 const authRouter = express.Router()
 

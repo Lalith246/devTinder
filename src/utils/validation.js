@@ -1,5 +1,6 @@
 const { passwordChangeAllowedFields } = require('./constants')
 const { userModel } = require('../models/user')
+const { connectionModel } = require('../models/connectionRequest')
 
 const bcrypt = require('bcrypt')
 
@@ -44,7 +45,74 @@ const validatePasswordUpdateData = async (req) => {
   return _id
 }
 
+const validateSendConnectionRequestData = async (
+  senderUserId,
+  receiverUserId,
+  status
+) => {
+  if (!senderUserId || !receiverUserId) {
+    throw new Error('Invalid user IDs')
+  }
+  if (senderUserId === receiverUserId) {
+    throw new Error('You cannot send a connection request to yourself.')
+  }
+
+  // Check if status is allowed
+  if (['ignored', 'interested'].includes(status) === false) {
+    throw new Error('Invalid status!')
+  }
+
+  // Check if receiverUserId exists
+  const receiverUser = await userModel.findById(receiverUserId)
+  if (!receiverUser) {
+    throw new Error('Invalid user!')
+  }
+
+  const connectionAlreadyExists = await connectionModel.findOne({
+    $or: [
+      { senderId: senderUserId, receiverId: receiverUserId },
+      { senderId: receiverUserId, receiverId: senderUserId },
+    ],
+  })
+  if (connectionAlreadyExists) {
+    throw new Error('A connection request already exists between these users.')
+  }
+}
+
+const validateReviewConnectionRequestData = async (
+  requestId,
+  senderId,
+  status
+) => {
+  if (!requestId) {
+    throw new Error('Invalid request ID')
+  }
+
+  // Check if status is allowed
+  if (['accepted', 'rejected'].includes(status) === false) {
+    throw new Error('Invalid status!')
+  }
+
+  // Check if requestId exists
+  const connectionExists = await connectionModel.findOne({
+    _id: requestId,
+  })
+  if (
+    !connectionExists ||
+    senderId !== connectionExists.receiverId.toString()
+  ) {
+    throw new Error('No connection request found with this ID.')
+  }
+
+  // If status is ignored, throw error as we cannot review ignored requests
+  if (connectionExists.connectionStatus === 'ignored') {
+    throw new Error('Cannot review an ignored connection request.')
+  }
+}
+
 module.exports = {
   validateSignupData,
   validatePasswordUpdateData,
+  validateSendConnectionRequestData,
+  validateReviewConnectionRequestData,
 }
